@@ -13,7 +13,7 @@
             <div>Description: <p><%= proddetails.description %></p></div>
             <form action="/cart" method="POST">
                 <button type="submit" class="btn">Add to Cart</button>
-                <input type="hidden" name="productId" value="<%= proddetails.id %>">
+                <input type="hidden" name="productId" value="<%= proddetails._id %>">
             </form>
         </div>
     </main>
