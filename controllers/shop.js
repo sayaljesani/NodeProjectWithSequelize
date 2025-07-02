@@ -1,10 +1,10 @@
 const Product = require('../models/product');
 // const Cart = require('../models/cart');
-// const Order = require('../models/order');
+const Order = require('../models/orders');
 
 exports.getProducts = (req, res, next) => {
 
-  Product.fectchAll().then(products=>{
+  Product.find().then(products=>{
     res.render('shop/product-list', {
       prods: products,
       pageTitle: 'All Products',
@@ -24,7 +24,7 @@ exports.getProduct = (req, res, next) => {
   
 };
 exports.getindex = (req, res, next) => {
-  Product.fectchAll().then(products=>{
+  Product.find().then(products=>{
     res.render('shop/index', {
       prods: products,
       pageTitle: 'Shop',
@@ -37,10 +37,11 @@ exports.getindex = (req, res, next) => {
 }
 
 exports.getcart = (req, res, next) => {
-
-  req.user.getCart()
-  .then(products => {
-      res.render('shop/cart', {
+  req.user
+  .populate('cart.items.productId')
+  .then(user => {
+    const products = user.cart.items;
+    res.render('shop/cart', {
       path: '/cart',
       pageTitle: 'Your Cart',
       products: products
@@ -59,7 +60,7 @@ exports.postCart = (req, res, next) => {
 
 Product.findById(prodId)
     .then(product => {
-        return req.user.addToCart(product);
+      return req.user.addToCart(product);
     })
     .then(result => {
         console.log(result);
@@ -80,24 +81,27 @@ exports.postCartDeleteItem = (req, res, next) => {
 }
 
 exports.postOrder = (req, res, next) =>{
-  let fechedCart;
   req.user
-  .addOrder()
-  .then(result => {
+  .populate('cart.items.productId')
+  .then(user => {
+    const products = user.cart.items;
+    return req.user.addOrder(products);
+  }).then(result => {
     res.redirect('/orders');
   })
   .catch(err => console.log(err));
 };
 
 exports.getorders = (req, res, next) => {
-  req.user.getOrders()
-  .then(orders =>{
+
+  Order.find({'userId': req.user._id}).then(orders=>{
     res.render('shop/orders', {
       path: '/orders',
       pageTitle: 'Your Orders',
       orders: orders
     });
-  })
-  .catch(err => console.log(err));
+  }).catch(err => {
+    console.log(err);
+  });
   
 };
